@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sistem Piket & Presensi Keterlambatan Siswa - Pencatatan kedisiplinan digital">
+  <title><%= typeof title !== 'undefined' ? title : 'Sistem Piket' %></title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { 'inter': ['Inter', 'sans-serif'] },
+          colors: {
+            primary: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a' },
+            accent: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a' },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    .sidebar-link { transition: all 0.2s ease; }
+    .sidebar-link:hover { background: rgba(59,130,246,0.1); transform: translateX(4px); }
+    .sidebar-link.active { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
+    .card-hover { transition: all 0.3s ease; }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,0.08); }
+    .fade-in { animation: fadeIn 0.4s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .badge { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+    .badge-success { background: #dcfce7; color: #166534; }
+    .badge-warning { background: #fef9c3; color: #854d0e; }
+    .badge-danger { background: #fee2e2; color: #991b1b; }
+    .badge-info { background: #dbeafe; color: #1e40af; }
+
+    /* Print styles */
+    @media print {
+      .no-print { display: none !important; }
+      .print-only { display: block !important; }
+      body { background: white !important; }
+      .print-container { box-shadow: none !important; border: none !important; }
+    }
+    .print-only { display: none; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-inter">
+
+<% if (typeof currentUser !== 'undefined' && currentUser) { %>
+  <!-- LAYOUT DENGAN SIDEBAR -->
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 fixed h-full z-30 transition-transform duration-300 lg:translate-x-0 -translate-x-full">
+      <!-- Logo -->
+      <div class="h-16 flex items-center px-6 border-b border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg flex items-center justify-center">
+            <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
+          </div>
+          <div>
+            <h1 class="text-sm font-bold text-gray-800 leading-tight">Sistem Piket</h1>
+            <p class="text-[10px] text-gray-400 leading-tight">Presensi & Kedisiplinan</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="p-4 space-y-1">
+        <% if (currentUser.role === 'ADMIN') { %>
+          <a href="/admin/dashboard" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 <%= typeof title !== 'undefined' && title.includes('Dashboard') ? 'active' : '' %>">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+          </a>
+          <a href="/admin/students" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 <%= typeof title !== 'undefined' && title.includes('Siswa') ? 'active' : '' %>">
+            <i data-lucide="users" class="w-4 h-4"></i> Data Siswa
+          </a>
+          <a href="/admin/classes" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 <%= typeof title !== 'undefined' && title.includes('Kelas') ? 'active' : '' %>">
+            <i data-lucide="school" class="w-4 h-4"></i> Data Kelas
+          </a>
+          <a href="/admin/rules" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 <%= typeof title !== 'undefined' && title.includes('Aturan') ? 'active' : '' %>">
+            <i data-lucide="scale" class="w-4 h-4"></i> Aturan Pelanggaran
+          </a>
+          <a href="/admin/audit-log" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 <%= typeof title !== 'undefined' && title.includes('Audit') ? 'active' : '' %>">
+            <i data-lucide="file-text" class="w-4 h-4"></i> Audit Log
+          </a>
+        <% } else if (currentUser.role === 'GURU_PIKET') { %>
+          <a href="/guru-piket/dashboard" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 <%= typeof title !== 'undefined' && title.includes('Dashboard') ? 'active' : '' %>">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+          </a>
+          <a href="/guru-piket/input-terlambat" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 <%= typeof title !== 'undefined' && title.includes('Input') ? 'active' : '' %>">
+            <i data-lucide="user-plus" class="w-4 h-4"></i> Input Keterlambatan
+          </a>
+          <a href="/guru-piket/rekap" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 <%= typeof title !== 'undefined' && title.includes('Rekap') ? 'active' : '' %>">
+            <i data-lucide="clipboard-list" class="w-4 h-4"></i> Rekap Piket
+          </a>
+        <% } else if (currentUser.role === 'SISWA') { %>
+          <a href="/siswa/dashboard" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 <%= typeof title !== 'undefined' && title.includes('Dashboard') ? 'active' : '' %>">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+          </a>
+          <a href="/siswa/riwayat" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 <%= typeof title !== 'undefined' && title.includes('Riwayat') ? 'active' : '' %>">
+            <i data-lucide="history" class="w-4 h-4"></i> Riwayat Pelanggaran
+          </a>
+          <a href="/siswa/surat-izin" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 <%= typeof title !== 'undefined' && title.includes('Surat') ? 'active' : '' %>">
+            <i data-lucide="file-badge" class="w-4 h-4"></i> Status Surat Izin
+          </a>
+        <% } %>
+      </nav>
+
+      <!-- User Info -->
+      <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-100">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm font-bold">
+            <%= currentUser.nama.charAt(0) %>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-gray-800 truncate"><%= currentUser.nama %></p>
+            <p class="text-[10px] text-gray-400">
+              <% if (currentUser.role === 'ADMIN') { %>Waka Kesiswaan
+              <% } else if (currentUser.role === 'GURU_PIKET') { %>Guru Piket Harian
+              <% } else { %>Siswa<% } %>
+            </p>
+          </div>
+        </div>
+        <a href="/logout" class="flex items-center justify-center gap-2 w-full px-3 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition">
+          <i data-lucide="log-out" class="w-4 h-4"></i> Keluar
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 lg:ml-64">
+      <!-- Top Navbar -->
+      <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-20">
+        <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100">
+          <i data-lucide="menu" class="w-5 h-5 text-gray-600"></i>
+        </button>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-500">
+            <% if (currentUser.role === 'ADMIN') { %>
+              <span class="badge badge-info">ADMIN</span>
+            <% } else if (currentUser.role === 'GURU_PIKET') { %>
+              <span class="badge badge-success">GURU PIKET</span>
+            <% } else { %>
+              <span class="badge badge-warning">SISWA</span>
+            <% } %>
+          </span>
+        </div>
+        <div class="flex items-center gap-4">
+          <span class="text-sm text-gray-500 hidden sm:block">
+            <%= new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %>
+          </span>
+        </div>
+      </header>
+
+      <!-- Flash Messages -->
+      <% if (typeof success !== 'undefined' && success.length > 0) { %>
+        <div class="mx-6 mt-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm flex items-center gap-2 fade-in">
+          <i data-lucide="check-circle-2" class="w-5 h-5 flex-shrink-0"></i>
+          <span><%= success[0] %></span>
+        </div>
+      <% } %>
+      <% if (typeof error !== 'undefined' && error.length > 0) { %>
+        <div class="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-center gap-2 fade-in">
+          <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0"></i>
+          <span><%= error[0] %></span>
+        </div>
+      <% } %>
+
+      <!-- Page Content -->
+      <div class="p-6 fade-in">
+        <%- body %>
+      </div>
+    </main>
+  </div>
+
+  <!-- Sidebar Overlay (Mobile) -->
+  <div id="sidebarOverlay" class="fixed inset-0 bg-black/30 z-20 hidden lg:hidden" onclick="toggleSidebar()"></div>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      sidebar.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+    }
+  </script>
+<% } else { %>
+  <!-- LAYOUT TANPA SIDEBAR (Login page) -->
+  <%- body %>
+<% } %>
+
+<script>
+  // Initialize Lucide icons
+  lucide.createIcons();
+</script>
+</body>
+</html>

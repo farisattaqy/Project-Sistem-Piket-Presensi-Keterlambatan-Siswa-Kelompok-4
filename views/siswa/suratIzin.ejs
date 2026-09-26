@@ -1,0 +1,77 @@
+<!-- Siswa - Status Surat Izin -->
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-800">Status Surat Izin Masuk Kelas</h1>
+    <p class="text-sm text-gray-500">Pantau status surat izin masuk kelas yang telah diterbitkan</p>
+  </div>
+
+  <% if (records.length > 0) { %>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <% records.forEach(r => { %>
+        <div class="card-hover bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <!-- Status Header -->
+          <div class="px-5 py-3 flex items-center justify-between
+            <%= r.statusIzin === 'DIIZINKAN' ? 'bg-green-50 border-b border-green-100' : 'bg-amber-50 border-b border-amber-100' %>">
+            <div class="flex items-center gap-2">
+              <i data-lucide="<%= r.statusIzin === 'DIIZINKAN' ? 'check-circle' : 'clock' %>"
+                class="w-4 h-4 <%= r.statusIzin === 'DIIZINKAN' ? 'text-green-600' : 'text-amber-600' %>"></i>
+              <span class="text-sm font-semibold <%= r.statusIzin === 'DIIZINKAN' ? 'text-green-700' : 'text-amber-700' %>">
+                <%= r.statusIzin %>
+              </span>
+            </div>
+            <span class="text-xs text-gray-400">PIK-<%= r.id %></span>
+          </div>
+
+          <!-- Body -->
+          <div class="p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-gray-400">Tanggal</span>
+              <span class="text-sm font-medium text-gray-700">
+                <%= new Date(r.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) %>
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-gray-400">Jam Masuk</span>
+              <span class="text-sm font-mono text-gray-700"><%= r.jamMasuk %> WIB</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-gray-400">Keterlambatan</span>
+              <span class="badge <%= r.menitTelat > 30 ? 'badge-danger' : r.menitTelat > 15 ? 'badge-warning' : 'badge-info' %>">
+                <%= r.menitTelat %> menit
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-gray-400">Alasan</span>
+              <span class="text-sm text-gray-700 text-right max-w-[60%]"><%= r.alasan %></span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-gray-400">Guru Piket</span>
+              <span class="text-sm text-gray-700"><%= r.guruPiket.nama %></span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-gray-400">Poin</span>
+              <span class="text-sm font-bold text-red-600">+<%= r.poinDiberikan %></span>
+            </div>
+          </div>
+
+          <!-- Action -->
+          <% if (r.statusIzin === 'DIIZINKAN') { %>
+            <div class="px-5 py-3 bg-gray-50 border-t border-gray-100">
+              <a href="/siswa/surat-izin/<%= r.id %>" class="flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium">
+                <i data-lucide="file-badge" class="w-4 h-4"></i> Lihat Surat Izin
+              </a>
+            </div>
+          <% } %>
+        </div>
+      <% }); %>
+    </div>
+  <% } else { %>
+    <div class="bg-white rounded-xl p-12 border border-gray-100 shadow-sm text-center">
+      <i data-lucide="file-check" class="w-12 h-12 mx-auto mb-3 text-green-400"></i>
+      <p class="text-sm font-medium text-gray-600">Belum ada surat izin masuk kelas</p>
+      <p class="text-xs text-gray-400 mt-1">Surat izin akan muncul jika Anda tercatat terlambat oleh guru piket</p>
+    </div>
+  <% } %>
+</div>
+
+<script>lucide.createIcons();</script>

@@ -1,0 +1,99 @@
+<!-- Admin - Kelola Siswa -->
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Data Siswa</h1>
+      <p class="text-sm text-gray-500">Kelola data siswa dan profil kedisiplinan</p>
+    </div>
+    <a href="/admin/students/create" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition shadow-sm">
+      <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Siswa
+    </a>
+  </div>
+
+  <!-- Search & Filter -->
+  <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+    <form method="GET" action="/admin/students" class="flex flex-col sm:flex-row gap-3">
+      <div class="flex-1 relative">
+        <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+        <input type="text" name="search" value="<%= search %>" placeholder="Cari berdasarkan nama atau NISN..."
+          class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500">
+      </div>
+      <select name="classId" class="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500">
+        <option value="">Semua Kelas</option>
+        <% classes.forEach(c => { %>
+          <option value="<%= c.id %>" <%= selectedClassId == c.id ? 'selected' : '' %>><%= c.namaKelas %></option>
+        <% }); %>
+      </select>
+      <button type="submit" class="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition">
+        <i data-lucide="filter" class="w-4 h-4 inline"></i> Filter
+      </button>
+    </form>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-100">
+          <tr>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">No</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">NISN</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Nama</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Kelas</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Poin</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Username</th>
+            <th class="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Aksi</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          <% students.forEach((s, i) => { %>
+            <tr class="hover:bg-gray-50 transition">
+              <td class="px-5 py-3 text-gray-500"><%= i + 1 %></td>
+              <td class="px-5 py-3 font-mono text-gray-700"><%= s.nisn %></td>
+              <td class="px-5 py-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs font-bold">
+                    <%= s.nama.charAt(0) %>
+                  </div>
+                  <span class="font-medium text-gray-800"><%= s.nama %></span>
+                </div>
+              </td>
+              <td class="px-5 py-3 text-gray-600"><%= s.class.namaKelas %></td>
+              <td class="px-5 py-3">
+                <span class="badge <%= s.totalPoin >= 75 ? 'badge-danger' : s.totalPoin >= 50 ? 'badge-warning' : s.totalPoin > 0 ? 'badge-info' : 'badge-success' %>">
+                  <%= s.totalPoin %> poin
+                </span>
+              </td>
+              <td class="px-5 py-3 text-gray-500 font-mono text-xs"><%= s.user.username %></td>
+              <td class="px-5 py-3">
+                <div class="flex items-center justify-center gap-1">
+                  <a href="/admin/students/<%= s.id %>/edit" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 transition" title="Edit">
+                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                  </a>
+                  <form action="/admin/students/<%= s.id %>/delete" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus siswa ini?')">
+                    <button type="submit" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600 transition" title="Hapus">
+                      <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% }); %>
+          <% if (students.length === 0) { %>
+            <tr>
+              <td colspan="7" class="px-5 py-12 text-center text-gray-400">
+                <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2"></i>
+                <p>Tidak ada data siswa ditemukan</p>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+    <div class="px-5 py-3 bg-gray-50 border-t border-gray-100 text-xs text-gray-500">
+      Total: <%= students.length %> siswa
+    </div>
+  </div>
+</div>
+
+<script>lucide.createIcons();</script>

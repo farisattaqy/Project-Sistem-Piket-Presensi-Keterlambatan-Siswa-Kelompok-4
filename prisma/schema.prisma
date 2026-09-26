@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ─── Data pengguna sistem piket ───
+model User {
+  id       Int    @id @default(autoincrement())
+  username String @unique
+  password String
+  nama     String
+  role     String // ADMIN, GURU_PIKET, SISWA
+  nisn     String? @unique
+
+  student       Student?
+  lateRecords   LateRecord[] @relation("GuruPiketRecords")
+  auditLogs     AuditLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Data rombel kelas ───
+model Class {
+  id        Int    @id @default(autoincrement())
+  namaKelas String @unique
+  waliKelas String
+
+  students Student[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Profil siswa dan poin kedisiplinan ───
+model Student {
+  id        Int    @id @default(autoincrement())
+  userId    Int    @unique
+  nisn      String @unique
+  nama      String
+  classId   Int
+  totalPoin Int    @default(0)
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class       Class        @relation(fields: [classId], references: [id])
+  lateRecords LateRecord[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Rekam keterlambatan harian ───
+model LateRecord {
+  id          Int      @id @default(autoincrement())
+  studentId   Int
+  tanggal     DateTime
+  jamMasuk    String
+  menitTelat  Int
+  alasan      String
+  sanksi      String?
+  statusIzin  String   @default("MENUNGGU") // DIIZINKAN, MENUNGGU
+  poinDiberikan Int    @default(0)
+  guruPiketId Int
+
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  guruPiket User    @relation("GuruPiketRecords", fields: [guruPiketId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Katalog bobot poin pelanggaran ───
+model ViolationRule {
+  id               Int    @id @default(autoincrement())
+  namaPelanggaran  String
+  bobotPoin        Int
+  sanksiDefault    String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Audit log tindakan disiplin ───
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  action      String
+  description String
+  targetInfo  String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+}

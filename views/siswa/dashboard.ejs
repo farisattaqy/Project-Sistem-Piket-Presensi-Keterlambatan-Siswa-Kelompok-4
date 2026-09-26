@@ -1,0 +1,139 @@
+<!-- Siswa Dashboard -->
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Halo, <%= student.nama %> 👋</h1>
+      <p class="text-sm text-gray-500"><%= student.class.namaKelas %> · NISN: <%= student.nisn %></p>
+    </div>
+  </div>
+
+  <!-- Peringatan Poin -->
+  <% if (warningMessage) { %>
+    <div class="p-4 rounded-xl border flex items-start gap-3
+      <%= warningLevel === 'danger' ? 'bg-red-50 border-red-200 text-red-700' : 
+          warningLevel === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-700' : 
+          'bg-blue-50 border-blue-200 text-blue-700' %>">
+      <i data-lucide="alert-triangle" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+      <div>
+        <p class="text-sm font-medium"><%= warningMessage %></p>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="card-hover bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Total Keterlambatan</p>
+          <p class="text-3xl font-bold text-gray-800 mt-1"><%= totalKeterlambatan %></p>
+          <p class="text-xs text-gray-400">kali terlambat</p>
+        </div>
+        <div class="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center">
+          <i data-lucide="alarm-clock" class="w-6 h-6 text-orange-500"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-hover bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Rata-rata Telat</p>
+          <p class="text-3xl font-bold text-gray-800 mt-1"><%= avgMenitTelat %></p>
+          <p class="text-xs text-gray-400">menit per kejadian</p>
+        </div>
+        <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+          <i data-lucide="timer" class="w-6 h-6 text-blue-500"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-hover bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Akumulasi Poin</p>
+          <p class="text-3xl font-bold <%= student.totalPoin >= 75 ? 'text-red-600' : student.totalPoin >= 50 ? 'text-amber-600' : 'text-gray-800' %> mt-1">
+            <%= student.totalPoin %>
+          </p>
+          <p class="text-xs text-gray-400">dari batas <%= BATAS_MAKSIMAL %> poin</p>
+        </div>
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center
+          <%= student.totalPoin >= 75 ? 'bg-red-50' : student.totalPoin >= 50 ? 'bg-amber-50' : 'bg-green-50' %>">
+          <i data-lucide="gauge" class="w-6 h-6 <%= student.totalPoin >= 75 ? 'text-red-500' : student.totalPoin >= 50 ? 'text-amber-500' : 'text-green-500' %>"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress Bar Poin -->
+  <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-sm font-semibold text-gray-700">Meter Poin Pelanggaran</h3>
+      <span class="text-xs text-gray-400"><%= student.totalPoin %>/<%= BATAS_MAKSIMAL %> poin</span>
+    </div>
+    <div class="w-full bg-gray-100 rounded-full h-4 overflow-hidden">
+      <div class="h-full rounded-full transition-all duration-1000
+        <%= student.totalPoin >= 75 ? 'bg-gradient-to-r from-red-400 to-red-600' : 
+            student.totalPoin >= 50 ? 'bg-gradient-to-r from-amber-400 to-amber-600' : 
+            'bg-gradient-to-r from-green-400 to-blue-500' %>"
+        style="width: <%= Math.min((student.totalPoin / BATAS_MAKSIMAL) * 100, 100) %>%">
+      </div>
+    </div>
+    <div class="flex justify-between mt-1">
+      <span class="text-[10px] text-gray-400">0</span>
+      <span class="text-[10px] text-blue-500 font-medium" style="margin-left: <%= (BATAS_PERINGATAN / BATAS_MAKSIMAL) * 100 %>%">Peringatan (<%= BATAS_PERINGATAN %>)</span>
+      <span class="text-[10px] text-amber-500 font-medium">Kritis (<%= BATAS_KRITIS %>)</span>
+      <span class="text-[10px] text-red-500 font-medium">Maks (<%= BATAS_MAKSIMAL %>)</span>
+    </div>
+  </div>
+
+  <!-- Riwayat Terbaru -->
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm">
+    <div class="p-5 border-b border-gray-50 flex items-center justify-between">
+      <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+        <i data-lucide="history" class="w-4 h-4 text-blue-500"></i>
+        Riwayat Keterlambatan Terbaru
+      </h3>
+      <a href="/siswa/riwayat" class="text-xs text-blue-600 hover:underline">Lihat Semua →</a>
+    </div>
+
+    <% if (recentLate.length > 0) { %>
+      <div class="divide-y divide-gray-50">
+        <% recentLate.forEach(r => { %>
+          <div class="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center
+                <%= r.statusIzin === 'DIIZINKAN' ? 'bg-green-50' : 'bg-amber-50' %>">
+                <i data-lucide="<%= r.statusIzin === 'DIIZINKAN' ? 'check-circle' : 'clock' %>"
+                  class="w-5 h-5 <%= r.statusIzin === 'DIIZINKAN' ? 'text-green-500' : 'text-amber-500' %>"></i>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-800">
+                  Terlambat <%= r.menitTelat %> menit
+                </p>
+                <p class="text-xs text-gray-400">
+                  <%= new Date(r.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) %>
+                  · Jam <%= r.jamMasuk %>
+                </p>
+                <p class="text-xs text-gray-500 mt-0.5">Alasan: <%= r.alasan %></p>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="badge <%= r.statusIzin === 'DIIZINKAN' ? 'badge-success' : 'badge-warning' %>"><%= r.statusIzin %></span>
+              <p class="text-xs font-bold text-red-500 mt-1">+<%= r.poinDiberikan %> poin</p>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } else { %>
+      <div class="p-12 text-center text-gray-400">
+        <i data-lucide="smile" class="w-12 h-12 mx-auto mb-3 text-green-400"></i>
+        <p class="text-sm font-medium">Belum ada riwayat keterlambatan</p>
+        <p class="text-xs mt-1">Pertahankan kedisiplinanmu! 🌟</p>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<script>lucide.createIcons();</script>
