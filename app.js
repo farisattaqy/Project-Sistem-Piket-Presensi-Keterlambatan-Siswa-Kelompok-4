@@ -1,10 +1,27 @@
 require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
+
+// ─── Setup SQLite di Vercel Serverless (/tmp) ───
+// Filesystem Vercel bersifat read-only, sehingga file SQLite disalin ke /tmp yang writable
+if (process.env.VERCEL) {
+  const tmpDb = path.join('/tmp', 'dev.db');
+  const sourceDb = path.join(__dirname, 'prisma', 'dev.db');
+  try {
+    if (!fs.existsSync(tmpDb) && fs.existsSync(sourceDb)) {
+      fs.copyFileSync(sourceDb, tmpDb);
+    }
+    process.env.DATABASE_URL = 'file:' + tmpDb;
+  } catch (err) {
+    console.error('Gagal menyiapkan SQLite /tmp:', err);
+  }
+}
+
 const express = require('express');
 const cookieSession = require('cookie-session');
 const flash = require('connect-flash');
 const expressLayouts = require('express-ejs-layouts');
 const methodOverride = require('method-override');
-const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;

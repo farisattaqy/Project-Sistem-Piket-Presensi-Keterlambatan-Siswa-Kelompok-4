@@ -42,17 +42,17 @@ Setiap kali Anda melakukan push ke GitHub, Vercel akan otomatis men-deploy aplik
 
 ---
 
-## 🔑 2. Akun Bawaan (Hasil Seed)
+## 🔑 2. Akun Bawaan (Default Login)
 
-Setelah menjalankan `seed.js`:
+Database bawaan (`prisma/dev.db`) sudah langsung aktif dan berisi akun-akun berikut:
 
 | Role | Username | Password |
 |---|---|---|
-| **Admin** | `admin` | `admin123` |
-| **Guru Piket** | `guru1` | `guru123` |
-| **Guru Piket 2** | `guru2` | `guru123` |
-| **Siswa (NISN)** | `1001` (Ahmad Fauzi) | `siswa123` |
-| **Siswa (NISN)** | `1002` (Siti Aisyah) | `siswa123` |
+| **Admin** | `admin` | `password123` |
+| **Guru Piket 1** | `gurupiket` | `password123` |
+| **Guru Piket 2** | `gurupiket2` | `password123` |
+| **Siswa (Demo)** | `siswa` | `password123` |
+| **Siswa 2 - 10** | `siswa2` s/d `siswa10` | `password123` |
 
 ---
 

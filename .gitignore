@@ -7,7 +7,6 @@ node_modules/
 .env.*.local
 
 # Database (SQLite file)
-prisma/*.db
 prisma/*.db-journal
 
 # Logs
