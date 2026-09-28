@@ -54,10 +54,15 @@ exports.login = async (req, res) => {
 
 // ─── Logout ───
 exports.logout = (req, res) => {
-  req.session.destroy((err) => {
-    if (err) console.error('Logout error:', err);
+  if (req.session && typeof req.session.destroy === 'function') {
+    req.session.destroy((err) => {
+      if (err) console.error('Logout error:', err);
+      res.redirect('/login');
+    });
+  } else {
+    req.session = null;
     res.redirect('/login');
-  });
+  }
 };
 
 // ─── Helper: Redirect berdasarkan role ───

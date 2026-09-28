@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const session = require('express-session');
+const cookieSession = require('cookie-session');
 const flash = require('connect-flash');
 const expressLayouts = require('express-ejs-layouts');
 const methodOverride = require('method-override');
@@ -9,7 +9,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ─── Trust Proxy (wajib untuk deployment di balik reverse proxy seperti Render/Railway/Nginx) ───
+// ─── Trust Proxy (wajib untuk deployment Vercel / Render / Reverse Proxy) ───
 app.set('trust proxy', 1);
 
 // ─── View Engine Setup ───
@@ -24,16 +24,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(methodOverride('_method'));
 
-// ─── Session ───
+// ─── Session (Cookie-based agar persisten di Vercel Serverless) ───
 app.use(
-  session({
-    secret: process.env.SESSION_SECRET || 'sistem-piket-secret-key-2024',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      maxAge: 24 * 60 * 60 * 1000, // 24 jam
-      secure: process.env.COOKIE_SECURE === 'true', // true jika HTTPS murni diaktifkan
-    },
+  cookieSession({
+    name: 'piket_session',
+    keys: [process.env.SESSION_SECRET || 'sistem-piket-secret-key-2024'],
+    maxAge: 24 * 60 * 60 * 1000, // 24 jam
+    sameSite: 'lax',
   })
 );
 
@@ -88,22 +85,24 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ─── Start Server ───
-const server = app.listen(PORT, () => {
-  console.log(`\n🚀 Server berjalan di http://localhost:${PORT}`);
-  console.log(`📌 Login: http://localhost:${PORT}/login\n`);
-});
-
-// ─── Graceful Shutdown ───
-const gracefulShutdown = (signal) => {
-  console.log(`\n[${signal}] Menutup server Express secara graceful...`);
-  server.close(() => {
-    console.log('✅ Server HTTP ditutup.');
-    process.exit(0);
+// ─── Start Server (Hanya dijalankan saat local / persistent server, bukan di Vercel serverless) ───
+if (!process.env.VERCEL) {
+  const server = app.listen(PORT, () => {
+    console.log(`\n🚀 Server berjalan di http://localhost:${PORT}`);
+    console.log(`📌 Login: http://localhost:${PORT}/login\n`);
   });
-};
 
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+  // ─── Graceful Shutdown ───
+  const gracefulShutdown = (signal) => {
+    console.log(`\n[${signal}] Menutup server Express secara graceful...`);
+    server.close(() => {
+      console.log('✅ Server HTTP ditutup.');
+      process.exit(0);
+    });
+  };
+
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+}
 
 module.exports = app;
