@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const flash = require('connect-flash');
@@ -7,6 +8,9 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ─── Trust Proxy (wajib untuk deployment di balik reverse proxy seperti Render/Railway/Nginx) ───
+app.set('trust proxy', 1);
 
 // ─── View Engine Setup ───
 app.set('view engine', 'ejs');
@@ -23,10 +27,13 @@ app.use(methodOverride('_method'));
 // ─── Session ───
 app.use(
   session({
-    secret: 'sistem-piket-secret-key-2024',
+    secret: process.env.SESSION_SECRET || 'sistem-piket-secret-key-2024',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 24 * 60 * 60 * 1000 }, // 24 jam
+    cookie: {
+      maxAge: 24 * 60 * 60 * 1000, // 24 jam
+      secure: process.env.COOKIE_SECURE === 'true', // true jika HTTPS murni diaktifkan
+    },
   })
 );
 
@@ -82,9 +89,21 @@ app.use((err, req, res, next) => {
 });
 
 // ─── Start Server ───
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`\n🚀 Server berjalan di http://localhost:${PORT}`);
   console.log(`📌 Login: http://localhost:${PORT}/login\n`);
 });
+
+// ─── Graceful Shutdown ───
+const gracefulShutdown = (signal) => {
+  console.log(`\n[${signal}] Menutup server Express secara graceful...`);
+  server.close(() => {
+    console.log('✅ Server HTTP ditutup.');
+    process.exit(0);
+  });
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 module.exports = app;
